@@ -16,7 +16,6 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-@AllArgsConstructor
 public class AdminServiceImpl implements AdminService{
 
     private final InstitutionRepository institutionRepository;
@@ -68,3 +67,4 @@ public class AdminServiceImpl implements AdminService{
         institutionRepository.save(institution);
     }
 }
+
