@@ -1,6 +1,7 @@
 package com.bharat.online_certificate_verification_system.service.Impl;
 
 import com.bharat.online_certificate_verification_system.dto.request.IssueCertificateRequest;
+import com.bharat.online_certificate_verification_system.dto.response.CertificateVerificationResponse;
 import com.bharat.online_certificate_verification_system.dto.response.IssueCertificateResponse;
 import com.bharat.online_certificate_verification_system.entity.Certificate;
 import com.bharat.online_certificate_verification_system.entity.Institution;
@@ -11,39 +12,40 @@ import com.bharat.online_certificate_verification_system.repositories.Certificat
 import com.bharat.online_certificate_verification_system.repositories.InstitutionRepository;
 import com.bharat.online_certificate_verification_system.repositories.UserRepository;
 import com.bharat.online_certificate_verification_system.service.CertificateService;
+import com.bharat.online_certificate_verification_system.service.pdf.PdfService;
+import com.bharat.online_certificate_verification_system.service.qr.QrCodeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 @Transactional
-
 public class CertificateServiceImpl implements CertificateService {
 
     private final CertificateRepository certificateRepository;
     private final InstitutionRepository institutionRepository;
     private final UserRepository userRepository;
+    private final QrCodeService qrCodeService;
+    private final PdfService pdfService;
 
     @Override
     public IssueCertificateResponse issueCertificate(
             String loggedInEmail,
-            IssueCertificateRequest request){
+            IssueCertificateRequest request) {
 
-        User user = userRepository.findByEmail(loggedInEmail).orElseThrow(() ->
-        new ResourceNotFoundException("User not found"));
+        User user = userRepository.findByEmail(loggedInEmail)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("User not found"));
 
         Institution institution = institutionRepository.findByUser(user)
-                .orElseThrow(()->
+                .orElseThrow(() ->
                         new ResourceNotFoundException("Institution not found"));
 
-        String certificateId = UUID.randomUUID().toString();
-
+        // Create certificate without certificateId
         Certificate certificate = Certificate.builder()
-                .certificateId(certificateId)
                 .recipientName(request.getRecipientName())
                 .recipientEmail(request.getRecipientEmail())
                 .courseName(request.getCourseName())
@@ -54,16 +56,45 @@ public class CertificateServiceImpl implements CertificateService {
                 .institution(institution)
                 .build();
 
+        // First save (database generates ID)
+        certificateRepository.save(certificate);
+
+        // Generate readable certificate ID
+        String certificateId = generateCertificateId(certificate.getId());
+        certificate.setCertificateId(certificateId);
+
+        // Generate QR Code
+        String qrCodePath = qrCodeService.generateQrCode(certificateId);
+        certificate.setQrCodeUrl(qrCodePath);
+
+        String pdfPath =
+                pdfService.generateCertificatePdf(certificate.getId());
+
+        certificate.setPdfUrl(pdfPath);
+
+        // Save updated certificate
         certificateRepository.save(certificate);
 
         return IssueCertificateResponse.builder()
-                .certificateId(certificateId)
+                .certificateId(certificate.getCertificateId())
                 .recipientName(certificate.getRecipientName())
                 .courseName(certificate.getCourseName())
-                .message("Certificate isssued successfully.")
+                .message("Certificate issued successfully.")
                 .build();
     }
+    private String generateCertificateId(Long id) {
 
+        return String.format(
+                "OCVS-%d-%06d",
+                LocalDate.now().getYear(),
+                id
+        );
+    }
+
+    @Override
+    public CertificateVerificationResponse verifyCertificate(String certificateId) {
+        return null;
+    }
 
 
 }

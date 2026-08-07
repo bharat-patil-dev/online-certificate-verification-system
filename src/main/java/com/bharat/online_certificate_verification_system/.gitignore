@@ -1,0 +1,20 @@
+target/
+.idea/
+.vscode/
+*.iml
+
+# Maven wrapper logs
+.mvn/wrapper/maven-wrapper.jar
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Environment
+.env
+
+# IntelliJ
+out/

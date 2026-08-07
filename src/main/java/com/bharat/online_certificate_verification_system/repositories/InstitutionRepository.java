@@ -12,4 +12,5 @@ public interface InstitutionRepository extends CrudRepository<Institution, Long>
     List<Institution> findByStatus(InstitutionStatus status);
 
     Optional<Institution> findByUser(User user);
+    Optional<Institution> findByUserId(Long userId);
 }

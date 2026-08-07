@@ -42,6 +42,7 @@ public class Certificate {
 
     private String qrCodeUrl;
 
+    @Column(length =500)
     private String pdfUrl;
 
     @Enumerated(EnumType.STRING)
@@ -51,4 +52,7 @@ public class Certificate {
     @ManyToOne(fetch =FetchType.LAZY)
     @JoinColumn(name="Institution_id", nullable =false)
     private Institution institution;
+
+
+
 }

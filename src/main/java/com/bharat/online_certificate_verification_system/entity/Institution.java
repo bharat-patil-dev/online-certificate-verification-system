@@ -29,7 +29,7 @@ public class Institution extends BaseEntity{
     @Column(nullable = false)
     private String address;
 
-    @Column (name = "logo_url")
+    @Column (name = "logo_url",length=500)
     private String logoUrl;
 
     @Enumerated(EnumType.STRING)

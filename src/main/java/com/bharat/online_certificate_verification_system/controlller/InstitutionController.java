@@ -1,35 +1,36 @@
-package com.bharat.online_certificate_verification_system.controlller;
+package com.bharat.online_certificate_verification_system.controller;
 
-import com.bharat.online_certificate_verification_system.dto.request.IssueCertificateRequest;
-import com.bharat.online_certificate_verification_system.dto.response.IssueCertificateResponse;
-import com.bharat.online_certificate_verification_system.service.CertificateService;
-import jakarta.validation.Valid;
+import com.bharat.online_certificate_verification_system.dto.response.FileUploadResponse;
+import com.bharat.online_certificate_verification_system.service.InstitutionService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
-@RequestMapping("/api/istitution")
+@RequestMapping("/api/institution")
 @RequiredArgsConstructor
 public class InstitutionController {
-    private final CertificateService certificateService;
 
-    public ResponseEntity<?> issueCertificate(@Valid @RequestBody IssueCertificateRequest request,
-                                              Authentication authentication){
-        String email= authentication.getName();
+    private final InstitutionService institutionService;
 
-        IssueCertificateResponse response=
-                certificateService.issueCertificate(email , request);
+    @PostMapping("/logo")
+    public ResponseEntity<FileUploadResponse> uploadLogo(
+            @RequestParam("logo") MultipartFile logo,
+            Authentication authentication) {
+        System.out.println("InstitutionController reached");
+        System.out.println(authentication);
 
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(response);
+        System.out.println("Authentication = " + authentication);
+
+        String email = authentication.getName();
+
+        System.out.println("Email = " + email);
+
+        FileUploadResponse response =
+                institutionService.uploadLogo(email, logo);
+
+        return ResponseEntity.ok(response);
     }
-
-
-
 }
