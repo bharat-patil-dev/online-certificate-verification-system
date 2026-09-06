@@ -1,6 +1,7 @@
 package com.bharat.online_certificate_verification_system.service.Impl;
 
 import com.bharat.online_certificate_verification_system.dto.InstitutionRegistrationRequest;
+import com.bharat.online_certificate_verification_system.dto.RecipientRegistrationRequest;
 import com.bharat.online_certificate_verification_system.dto.auth.LoginRequest;
 import com.bharat.online_certificate_verification_system.dto.auth.LoginResponse;
 import com.bharat.online_certificate_verification_system.entity.Institution;
@@ -26,40 +27,61 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 @Transactional
 public class AuthServiceImpl implements AuthService {
+
     private final UserRepository userRepository;
     private final InstitutionRepository institutionRepository;
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
 
-
-
     @Override
     public void registerInstitution(InstitutionRegistrationRequest request) {
-        if(userRepository.existsByEmail(request.getEmail())) {
+
+        if (userRepository.existsByEmail(request.getEmail())) {
             throw new ResourceAlreadyExistsException("Email already exists.");
         }
-            User user = User.builder()
-                    .fullName(request.getFullName())
-                    .email(request.getEmail())
-                    .password(passwordEncoder.encode(request.getPassword()))
-                    .role(Role.INSTITUTION)
-                    .enabled(false)
-                    .build();
-            Institution institution = Institution.builder()
-                    .institutionName(request.getInstitutionName())
-                    .phone(request.getPhone())
-                    .website(request.getWebsite())
-                    .address(request.getAddress())
-                    .status(InstitutionStatus.PENDING)
-                    .user(user)
-                    .build();
 
-            institutionRepository.save(institution);
+        User user = User.builder()
+                .fullName(request.getFullName())
+                .email(request.getEmail())
+                .password(passwordEncoder.encode(request.getPassword()))
+                .role(Role.INSTITUTION)
+                .enabled(false)
+                .build();
+
+        Institution institution = Institution.builder()
+                .institutionName(request.getInstitutionName())
+                .phone(request.getPhone())
+                .website(request.getWebsite())
+                .address(request.getAddress())
+                .status(InstitutionStatus.PENDING)
+                .user(user)
+                .build();
+
+        institutionRepository.save(institution);
     }
 
     @Override
-    public LoginResponse login(LoginRequest request){
+    public void registerRecipient(RecipientRegistrationRequest request) {
+
+        if (userRepository.existsByEmail(request.getEmail())) {
+            throw new ResourceAlreadyExistsException("Email already exists.");
+        }
+
+        User user = User.builder()
+                .fullName(request.getFullName())
+                .email(request.getEmail())
+                .password(passwordEncoder.encode(request.getPassword()))
+                .role(Role.RECIPIENT)
+                .enabled(true)
+                .build();
+
+        userRepository.save(user);
+    }
+
+    @Override
+    public LoginResponse login(LoginRequest request) {
+
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         request.getEmail(),
@@ -67,10 +89,12 @@ public class AuthServiceImpl implements AuthService {
                 )
         );
 
-        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+        UserDetails userDetails =
+                (UserDetails) authentication.getPrincipal();
 
         User user = userRepository.findByEmail(userDetails.getUsername())
-                .orElseThrow(()-> new UsernameNotFoundException("User not Found"));
+                .orElseThrow(() ->
+                        new UsernameNotFoundException("User not Found"));
 
         String token = jwtService.generateToken(userDetails);
 
@@ -82,5 +106,4 @@ public class AuthServiceImpl implements AuthService {
                 .role(user.getRole().name())
                 .build();
     }
-
 }

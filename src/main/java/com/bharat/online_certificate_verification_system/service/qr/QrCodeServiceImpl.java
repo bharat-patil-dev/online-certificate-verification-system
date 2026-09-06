@@ -27,7 +27,7 @@ public class QrCodeServiceImpl implements QrCodeService {
             Files.createDirectories(Paths.get(QR_DIRECTORY));
 
             String verificationUrl =
-                    baseUrl + "/api/public/verify/" + certificateId;
+                    baseUrl +  "/api/public/certificates/verify/" + certificateId;
 
             QRCodeWriter qrCodeWriter = new QRCodeWriter();
 

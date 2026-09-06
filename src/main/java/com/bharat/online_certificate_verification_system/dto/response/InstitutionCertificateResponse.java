@@ -11,10 +11,13 @@ import java.time.LocalDate;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class CertificateVerificationResponse {
+public class InstitutionCertificateResponse {
+
     private String certificateId;
 
     private String recipientName;
+
+    private String institutionName;
 
     private String recipientEmail;
 
@@ -24,12 +27,9 @@ public class CertificateVerificationResponse {
 
     private LocalDate issueDate;
 
-    private String institutionName;
-
     private String status;
 
     private String pdfUrl;
 
     private String qrCodeUrl;
 }
-

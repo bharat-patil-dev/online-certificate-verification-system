@@ -18,8 +18,27 @@ import java.io.IOException;
 @Component
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
+
     private final JwtService jwtService;
     private final UserDetailsService userDetailsService;
+
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+
+        String path = request.getServletPath();
+
+        // Don't run JWT authentication for auth endpoints
+        if (path.startsWith("/api/auth/")) {
+            return true;
+        }
+
+        // Don't run JWT authentication for CORS preflight
+        if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
+            return true;
+        }
+
+        return false;
+    }
 
     @Override
     protected void doFilterInternal(
@@ -28,62 +47,75 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             FilterChain filterChain)
             throws ServletException, IOException {
 
-        System.out.println("========== JWT FILTER ==========");
-        System.out.println(request.getRequestURI());
 
-        final String authHeader = request.getHeader("Authorization");
 
-        System.out.println("Authorization Header = " + authHeader);
+        String authHeader =
+                request.getHeader("Authorization");
 
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            System.out.println("Bearer token missing");
+
+        // No JWT → continue normally
+        if (authHeader == null ||
+                !authHeader.startsWith("Bearer ")) {
+
+
+
             filterChain.doFilter(request, response);
             return;
         }
 
         String jwt = authHeader.substring(7);
 
-        System.out.println("JWT = " + jwt);
+        try {
 
-        String username = jwtService.extractUsername(jwt);
+            String username =
+                    jwtService.extractUsername(jwt);
 
-        System.out.println("Username = " + username);
 
-        if (username != null &&
-                SecurityContextHolder.getContext().getAuthentication() == null) {
+            if (username != null &&
+                    SecurityContextHolder
+                            .getContext()
+                            .getAuthentication() == null) {
 
-            UserDetails userDetails =
-                    userDetailsService.loadUserByUsername(username);
+                UserDetails userDetails =
+                        userDetailsService
+                                .loadUserByUsername(username);
 
-            System.out.println("Authorities = "
-                    + userDetails.getAuthorities());
+                System.out.println(
+                        "Authorities = "
+                                + userDetails.getAuthorities()
+                );
 
-            if (jwtService.isTokenValid(jwt, userDetails)) {
+                if (jwtService.isTokenValid(
+                        jwt,
+                        userDetails)) {
 
-                System.out.println("TOKEN VALID");
+                    UsernamePasswordAuthenticationToken
+                            authToken =
+                            new UsernamePasswordAuthenticationToken(
+                                    userDetails,
+                                    null,
+                                    userDetails.getAuthorities()
+                            );
 
-                UsernamePasswordAuthenticationToken authToken =
-                        new UsernamePasswordAuthenticationToken(
-                                userDetails,
-                                null,
-                                userDetails.getAuthorities());
+                    authToken.setDetails(
+                            new WebAuthenticationDetailsSource()
+                                    .buildDetails(request)
+                    );
 
-                authToken.setDetails(
-                        new WebAuthenticationDetailsSource()
-                                .buildDetails(request));
+                    SecurityContextHolder
+                            .getContext()
+                            .setAuthentication(authToken);
 
-                SecurityContextHolder
-                        .getContext()
-                        .setAuthentication(authToken);
 
-                System.out.println("Authentication Stored");
-            } else {
-                System.out.println("TOKEN INVALID");
+
+                }
             }
+
+        } catch (Exception e) {
+
+            // Invalid JWT should not break public/auth requests.
         }
 
         filterChain.doFilter(request, response);
     }
-
-
 }

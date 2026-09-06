@@ -6,18 +6,33 @@ import lombok.Data;
 
 @Data
 public class IssueCertificateRequest {
-    @NotBlank
+
+    @NotBlank(
+            message = "Recipient name is required"
+    )
     private String recipientName;
 
-    @Email
-    @NotBlank
+
+    @NotBlank(
+            message = "Recipient email is required"
+    )
+    @Email(
+            message = "Enter a valid recipient email"
+    )
     private String recipientEmail;
 
-    @NotBlank
+
+    @NotBlank(
+            message = "Course name is required"
+    )
     private String courseName;
 
-    @NotBlank
+
+    @NotBlank(
+            message = "Certificate title is required"
+    )
     private String certificateTitle;
+
 
     private String description;
 }

@@ -1,22 +1,21 @@
 package com.bharat.online_certificate_verification_system.dto.response;
 
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 
 @Data
 @Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class CertificateVerificationResponse {
+public class AdminCertificateResponse {
+
     private String certificateId;
 
     private String recipientName;
 
     private String recipientEmail;
+
+    private String institutionName;
 
     private String courseName;
 
@@ -24,12 +23,9 @@ public class CertificateVerificationResponse {
 
     private LocalDate issueDate;
 
-    private String institutionName;
-
     private String status;
 
     private String pdfUrl;
 
     private String qrCodeUrl;
 }
-
