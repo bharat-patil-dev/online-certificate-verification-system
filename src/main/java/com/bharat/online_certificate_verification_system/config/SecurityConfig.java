@@ -95,8 +95,10 @@ public class SecurityConfig {
                 new CorsConfiguration();
 
         configuration.setAllowedOrigins(
-                List.of("http://localhost:5173")
-        );
+                List.of(
+                        "http://localhost:5173",
+                        "https://online-certificate-verification-fro.vercel.app")
+                );
 
         configuration.setAllowedMethods(
                 List.of(
