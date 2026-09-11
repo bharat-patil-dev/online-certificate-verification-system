@@ -1,5 +1,6 @@
 package com.bharat.online_certificate_verification_system.service.Impl;
 
+import org.springframework.beans.factory.annotation.Value;
 import com.bharat.online_certificate_verification_system.dto.request.IssueCertificateRequest;
 import com.bharat.online_certificate_verification_system.dto.response.AdminCertificateResponse;
 import com.bharat.online_certificate_verification_system.dto.response.CertificateVerificationResponse;
@@ -34,6 +35,8 @@ public class CertificateServiceImpl implements CertificateService {
     private final UserRepository userRepository;
     private final QrCodeService qrCodeService;
     private final PdfService pdfService;
+    @Value("${app.base-url}")
+    private String baseUrl;
 
 
     // =========================================================
@@ -91,11 +94,11 @@ public class CertificateServiceImpl implements CertificateService {
 
         // Set file URLs
         String qrCodeUrl =
-                "http://localhost:8080/api/public/files/qr/"
+                baseUrl + "/api/public/files/qr/"
                         + certificateId + ".png";
 
         String pdfUrl =
-                "http://localhost:8080/api/public/files/pdf/"
+                baseUrl + "/api/public/files/pdf/"
                         + certificateId + ".pdf";
 
         savedCertificate.setQrCodeUrl(qrCodeUrl);
